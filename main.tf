@@ -4,19 +4,23 @@ provider "aws" {
 
 # Fetch Defaults
 data "aws_vpc" "default" { default = true }
+
 data "aws_subnets" "default" {
-  filter { name = "vpc-id", values = [data.aws_vpc.default.id] }
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
 }
 
-# 1. CloudWatch Log Group
+# 1. CloudWatch Log Group (Unique Name for Instruction 2)
 resource "aws_cloudwatch_log_group" "strapi" {
-  name              = "/ecs/strapi"
+  name              = "/ecs/strapi-nithin"
   retention_in_days = 7
 }
 
-# 2. ECS Cluster with Metrics Enabled
+# 2. ECS Cluster with Container Insights (For Instruction 3 - Metrics)
 resource "aws_ecs_cluster" "strapi_cluster" {
-  name = "strapi-cluster-v2"
+  name = "strapi-cluster-nithin"
   setting {
     name  = "containerInsights"
     value = "enabled"
@@ -25,27 +29,27 @@ resource "aws_ecs_cluster" "strapi_cluster" {
 
 # 3. Security Group
 resource "aws_security_group" "strapi_sg" {
-  name   = "strapi-sg-final"
+  name   = "strapi-sg-nithin"
   vpc_id = data.aws_vpc.default.id
   ingress {
-    from_port = 1337
-    to_port = 1337
-    protocol = "tcp"
+    from_port   = 1337
+    to_port     = 1337
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
   egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
 # 4. ECS Service
 resource "aws_ecs_service" "strapi_service" {
-  name            = "strapi-service"
+  name            = "strapi-service-nithin"
   cluster         = aws_ecs_cluster.strapi_cluster.id
-  task_definition = "strapi-task"
+  task_definition = "strapi-task" 
   launch_type     = "FARGATE"
   desired_count   = 1
   network_configuration {
