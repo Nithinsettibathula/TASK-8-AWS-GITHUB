@@ -2,12 +2,12 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# 1. Fetching the existing VPC from your screenshot
+# Fetching the existing VPC from your screenshot
 data "aws_vpc" "existing" {
   id = "vpc-0295253d470704295" 
 }
 
-# 2. Automatically fetching subnets from this VPC
+# Automatically fetching subnets from this VPC
 data "aws_subnets" "existing" {
   filter {
     name   = "vpc-id"
@@ -15,13 +15,13 @@ data "aws_subnets" "existing" {
   }
 }
 
-# 3. CloudWatch Log Group for Strapi logs
+# CloudWatch Log Group
 resource "aws_cloudwatch_log_group" "strapi" {
   name              = "/ecs/strapi-nithin"
   retention_in_days = 7
 }
 
-# 4. ECS Cluster with Monitoring enabled
+# ECS Cluster
 resource "aws_ecs_cluster" "strapi_cluster" {
   name = "strapi-cluster-nithin"
   setting {
@@ -30,7 +30,7 @@ resource "aws_ecs_cluster" "strapi_cluster" {
   }
 }
 
-# 5. Security Group for Port 1337
+# Security Group
 resource "aws_security_group" "strapi_sg" {
   name        = "strapi-sg-nithin"
   vpc_id      = data.aws_vpc.existing.id
@@ -51,11 +51,11 @@ resource "aws_security_group" "strapi_sg" {
   }
 }
 
-# 6. ECS Service
+# ECS Service
 resource "aws_ecs_service" "strapi_service" {
   name            = "strapi-service-nithin"
   cluster         = aws_ecs_cluster.strapi_cluster.id
-  task_definition = "strapi-task" # Matches family in task-definition.json
+  task_definition = "strapi-task"
   launch_type     = "FARGATE"
   desired_count   = 1
 
@@ -66,7 +66,7 @@ resource "aws_ecs_service" "strapi_service" {
   }
 }
 
-# 7. CloudWatch Dashboard for Metrics (CPU, Memory, Network)
+# CloudWatch Dashboard
 resource "aws_cloudwatch_dashboard" "strapi_dashboard" {
   dashboard_name = "Strapi-Monitoring-Nithin"
   dashboard_body = jsonencode({
@@ -79,16 +79,6 @@ resource "aws_cloudwatch_dashboard" "strapi_dashboard" {
             [ ".", "MemoryUtilization", ".", ".", ".", "." ]
           ]
           period = 60, stat = "Average", region = "us-east-1", title = "ECS CPU & Memory"
-        }
-      },
-      {
-        type = "metric", x = 0, y = 6, width = 12, height = 6
-        properties = {
-          metrics = [
-            [ "AWS/ECS", "NetworkRxBytes", "ServiceName", "strapi-service-nithin", "ClusterName", "strapi-cluster-nithin" ],
-            [ ".", "NetworkTxBytes", ".", ".", ".", "." ]
-          ]
-          period = 60, stat = "Average", region = "us-east-1", title = "Network In/Out"
         }
       }
     ]
